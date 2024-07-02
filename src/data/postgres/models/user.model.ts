@@ -49,6 +49,12 @@ export class Users extends BaseEntity {
   role: Role;
 
   @Column({
+    type: "boolean",
+    default: false,
+  })
+  emailValidated: boolean;
+
+  @Column({
     type: "enum",
     nullable: false,
     enum: Status,

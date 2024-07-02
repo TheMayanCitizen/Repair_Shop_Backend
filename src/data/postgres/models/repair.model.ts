@@ -26,6 +26,17 @@ export class Repairs extends BaseEntity {
 
   @Column({
     nullable: false,
+    type: "integer",
+  })
+  motorsNumber: number;
+
+  @Column({
+    nullable: false,
+    type: "text",
+  })
+  description: string;
+  @Column({
+    nullable: false,
     type: "enum",
     enum: Status,
     default: Status.PENDING,
