@@ -92,4 +92,13 @@ export class UserController {
       .then((data) => res.status(200).json(data))
       .catch((error) => this.handleError(error, res));
   };
+
+  getProfile = (req: Request, res: Response) => {
+    const { id } = req.body.sessionUser;
+
+    this.userService
+      .getProfile(+id)
+      .then((data) => res.status(200).json(data))
+      .catch((error) => this.handleError(error, res));
+  };
 }

@@ -35,6 +35,7 @@ export class Repairs extends BaseEntity {
     type: "text",
   })
   description: string;
+
   @Column({
     nullable: false,
     type: "enum",

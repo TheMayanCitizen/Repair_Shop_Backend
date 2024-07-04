@@ -1,10 +1,14 @@
-import { JwtAdapter, bcryptAdapter, envs } from "../../config";
+import {
+  JwtAdapter,
+  bcryptAdapter,
+  createHTMLValdationEmailTemplate,
+  envs,
+} from "../../config";
 import { Users } from "../../data";
 import { CustomError, UpdateUserDto } from "../../domain";
 import { LoginUserDto } from "../../domain/dtos/users/login-user.dto";
 import { RegisterUserDto } from "../../domain/dtos/users/register-user.dto";
 import { EmailService } from "./email.service";
-import { createHTMLValdationEmailTemplate } from "./html_template";
 
 enum Status {
   ACTIVE = "ACTIVE",
@@ -28,7 +32,7 @@ export class UsersService {
 
     user.name = userData.name.toLowerCase().trim();
     user.email = userData.email.toLowerCase().trim();
-    user.password = bcryptAdapter.hash(userData.password.trim());
+    user.password = userData.password.trim();
 
     try {
       await user.save();
@@ -90,6 +94,58 @@ export class UsersService {
     }
   };
 
+  async login(loginUserDto: LoginUserDto) {
+    //1.Buscar el usuari que se quiere loggear
+    const user = await Users.findOne({
+      where: {
+        email: loginUserDto.email,
+        status: Status.ACTIVE,
+        emailValidated: true,
+      },
+    });
+
+    if (!user) throw CustomError.unAuthorized("Invalid email or password");
+
+    //2. Validar si la contrasena es correcta
+    const isMatching = bcryptAdapter.compare(
+      loginUserDto.password,
+      user.password
+    );
+
+    if (!isMatching)
+      throw CustomError.unAuthorized("Invalid email or password");
+
+    //3.Generar token
+    const token = await JwtAdapter.generateToken({ id: user.id });
+
+    if (!token) throw CustomError.internalServer("Error while creating JWT");
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+
+      //4.Enviar informacion al cliente
+    };
+  }
+
+  async getProfile(id: number) {
+    const user = await Users.findOne({
+      where: {
+        id,
+        status: Status.ACTIVE,
+      },
+    });
+
+    if (!user) throw CustomError.notFound("User not found");
+
+    return user;
+  }
+
   async getAllUsers() {
     try {
       return await Users.find({
@@ -141,44 +197,5 @@ export class UsersService {
     } catch (error) {
       throw CustomError.internalServer("Something very wrong my homeboy");
     }
-  }
-
-  async login(loginUserDto: LoginUserDto) {
-    //1.Buscar el usuari que se quiere loggear
-    const user = await Users.findOne({
-      where: {
-        email: loginUserDto.email,
-        status: Status.ACTIVE,
-        emailValidated: true,
-      },
-    });
-
-    if (!user) throw CustomError.unAuthorized("Invalid email or password");
-
-    //2. Validar si la contrasena es correcta
-    const isMatching = bcryptAdapter.compare(
-      loginUserDto.password,
-      user.password
-    );
-
-    if (!isMatching)
-      throw CustomError.unAuthorized("Invalid email or password");
-
-    //3.Generar token
-    const token = await JwtAdapter.generateToken({ id: user.id });
-
-    if (!token) throw CustomError.internalServer("Error while creating JWT");
-
-    return {
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-
-      //4.Enviar informacion al cliente
-    };
   }
 }

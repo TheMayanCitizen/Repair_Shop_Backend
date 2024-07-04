@@ -3,6 +3,7 @@ import { UsersService } from "../services/users.service";
 import { UserController } from "./users.controllers";
 import { EmailService } from "../services/email.service";
 import { envs } from "../../config";
+import { AuthMiddleware } from "../middlewares/auth.middleware";
 
 export class UsersRoutes {
   static get routes(): Router {
@@ -21,6 +22,8 @@ export class UsersRoutes {
     router.post("/register", controller.createUser); //Necesita un DTo
     router.get("/validate-email/:token", controller.validateEmail);
     router.post("/login", controller.login);
+    router.get("/profile", AuthMiddleware.protect, controller.getProfile);
+
     // Other routes
     router.get("/", controller.getUsers);
     router.get("/:id", controller.getUserById);

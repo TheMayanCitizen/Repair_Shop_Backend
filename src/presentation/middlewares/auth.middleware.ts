@@ -33,7 +33,6 @@ export class AuthMiddleware {
           id: payload.id,
           status: Status.ACTIVE,
           emailValidated: true,
-          role: Role.EMPLOYEE,
         },
       });
 
@@ -44,4 +43,14 @@ export class AuthMiddleware {
       return res.status(500).json({ message: "Internal server error" });
     }
   }
+
+  static restricTo = (...roles: any) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+      if (!roles.includes(req.body.sessionUser.role)) {
+        return res
+          .status(403)
+          .json({ message: "You are not authorized to access this route" });
+      }
+    };
+  };
 }
