@@ -2,6 +2,9 @@ import { Router } from "express";
 import { RepairService } from "../services/repairs.service";
 import { RepairController } from "./repairs.controllers";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
+import { UsersService } from "../services/users.service";
+import { envs } from "../../config";
+import { EmailService } from "../services/email.service";
 
 enum Role {
   CLIENT = "CLIENT",
@@ -12,7 +15,15 @@ export class RepairsRoutes {
   static get routes(): Router {
     const router = Router();
 
-    const repairService = new RepairService();
+    const emailService = new EmailService(
+      envs.MAILER_SERVICE,
+      envs.MAILER_EMAIL,
+      envs.MAILER_SECRET_KEY,
+      envs.SEND_EMAIL
+    );
+
+    const userService = new UsersService(emailService);
+    const repairService = new RepairService(userService);
     const controller = new RepairController(repairService);
 
     router.post("/", controller.createRepairAppointment);
