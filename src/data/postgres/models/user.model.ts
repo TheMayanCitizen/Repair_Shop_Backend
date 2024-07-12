@@ -4,10 +4,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { bcryptAdapter } from "../../../config";
+import { Repairs } from "./repair.model";
 
 enum Role {
   CLIENT = "CLIENT",
@@ -74,4 +76,7 @@ export class Users extends BaseEntity {
   encryptPassword() {
     this.password = bcryptAdapter.hash(this.password);
   }
+
+  @OneToMany(() => Repairs, (repair) => repair.user)
+  repairs: Repairs[];
 }
