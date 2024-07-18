@@ -1,5 +1,6 @@
 ### dotenv ###
 .env
+.env.test
 
 ### macOS ###
 # General
